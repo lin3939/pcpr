@@ -1,0 +1,50 @@
+{
+  "name": "pcpr",
+  "displayName": "Programmer Chat Programming Robot",
+  "description": "A Programmer Chat Programming Robot, detecting logical errors in your code.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.108.1"
+  },
+  "categories": [
+    "Linters"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lin3939/pcpr.git"
+  },
+  "activationEvents": [],
+  "main": "./extension.mjs",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pcpr.checkCode",
+        "title": "PCPR Check Code"
+      },
+      {
+        "command": "pcpr.modifyConfig",
+        "title": "PCPR Modify Config"
+      },
+      {
+        "command": "pcpr.changeModel",
+        "title": "PCPR Change Model"
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.108.1",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.39.2"
+  },
+  "dependencies": {
+    "openai": "^6.16.0"
+  }
+}
