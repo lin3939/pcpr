@@ -1,11 +1,11 @@
-later# PCPR — Programmer Chat Programming Robot
+# PCPR — Programmer Chat Programming Robot
 
 # English
 
 Programmer Chat Programming Robot(PCPR in short), powered by AI, which detects logical errors in your code and provides useful advice.  
 
 ## Start
-- Run `npm install` to install dependencies in the project directory, open the project directory in VSCode and press `F5` to run the extension.
+- Run `npm install` to install dependencies in the project directory, open the project directory in VSCode and then press `F5` to run the extension.
 
 ---
 
