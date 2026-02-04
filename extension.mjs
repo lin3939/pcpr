@@ -93,7 +93,7 @@ export function activate(context) {
             const user_data = userdataUtils.getData(context.extensionPath);
             if (user_data.baseURL && user_data.apiKey && user_data.model){
                 const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-                statusBar.text = "$(sync-spin)PCPR: Analying....";
+                statusBar.text = "$(sync-spin)PCPR: Analyzing....";
                 statusBar.show();
 
                 main(context).then((result)=>{
@@ -126,7 +126,7 @@ export function activate(context) {
             const user_data = userdataUtils.getLocalPlanData(context.extensionPath);
             if (user_data.baseURL && user_data.model){
                 const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-                statusBar.text = "$(sync-spin)PCPR: Local Analying....";
+                statusBar.text = "$(sync-spin)PCPR: Local Analyzing....";
                 statusBar.show();
 
                 ollama_main(context).then((result)=>{

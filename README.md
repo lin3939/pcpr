@@ -1,4 +1,4 @@
-# PCPR — Programmer Chat Programming Robot
+later# PCPR — Programmer Chat Programming Robot
 
 # English
 
@@ -66,7 +66,7 @@ After running **PCPR Check Code** or **PCPR Local Check**, a prompt *PCPR: Analy
 ### 本地方案
 - 在命令面板（`F1`或`Ctrl/Cmd+Shift+P`）运行**PCPR Local Check**，如果没有配置，则修改配置。
 - 如果您之后想修改配置，请运行**PCPR Modify Local Config**并填写baseURL和AI model。
-- 本地方案的默认baseURL是ollama的默认OpenAI capability接口 **http://localhost:11434/v1/**，如需修改，请使用其他兼容OpenAI API的baseURL。
+- 本地方案的默认baseURL是ollama的默认OpenAI capability接口 **http://localhost:11434/v1/** ，如需修改，请使用其他兼容OpenAI API的baseURL。
 - 如果无需修改baseURL，仅需修改使用的AI model，请运行**PCPR Change Local Model**并填写想要使用的模型。
 
 ## 注意
@@ -77,7 +77,7 @@ After running **PCPR Check Code** or **PCPR Local Check**, a prompt *PCPR: Analy
 
 ## 行为
 
-运行**PCPR Check Code**或**PCPR Local Check**后，左下角会出向 *PCPR: Analying....* 或 *PCPR: Local Analyzing...* 的提示，表示AI正在分析代码，分析完成后，AI的回复将会被整合到您当前打开的工作区下名为**pcpr_result + 当前的ISO格式时间.md**的文件里，并打开一个新的markdown预览窗口来显示回答。
+运行**PCPR Check Code**或**PCPR Local Check**后，左下角会出现 *PCPR: Analyzing....* 或 *PCPR: Local Analyzing...* 的提示，表示AI正在分析代码，分析完成后，AI的回复将会被整合到您当前打开的工作区下名为**pcpr_result + 当前的ISO格式时间.md**的文件里，并打开一个新的markdown预览窗口来显示回答。
 
 ---
 
