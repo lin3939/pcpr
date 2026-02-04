@@ -2,7 +2,7 @@
   "name": "pcpr",
   "displayName": "Programmer Chat Programming Robot",
   "description": "A Programmer Chat Programming Robot, detecting logical errors in your code.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -13,6 +13,7 @@
     "type": "git",
     "url": "https://github.com/lin3939/pcpr.git"
   },
+  "license": "MIT",
   "activationEvents": [],
   "main": "./extension.mjs",
   "contributes": {
@@ -28,6 +29,18 @@
       {
         "command": "pcpr.changeModel",
         "title": "PCPR Change Model"
+      },
+      {
+        "command": "pcpr.localCheck",
+        "title": "PCPR Local Check"
+      },
+      {
+        "command": "pcpr.changeLocalModel",
+        "title": "PCPR Change Local Model"
+      },
+      {
+        "command": "pcpr.modifyLocalConfig",
+        "title": "PCPR Modify Local Config"
       }
     ]
   },
