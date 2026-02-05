@@ -2,7 +2,7 @@
   "name": "pcpr",
   "displayName": "Programmer Chat Programming Robot",
   "description": "A Programmer Chat Programming Robot, detecting logical errors in your code.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -42,7 +42,19 @@
         "command": "pcpr.modifyLocalConfig",
         "title": "PCPR Modify Local Config"
       }
-    ]
+    ],
+    "menus": {
+      "editor/context": [
+        {"command": "pcpr.checkCode", 
+        "title": "PCPR Check Code",
+        "when": "editorLangId != markdown && editorLangId != plaintext"
+        },
+        {
+        "command": "pcpr.localCheck",
+        "title": "PCPR Local Check",
+        "when": "editorLangId != markdown && editorLangId != plaintext"
+      }]
+    }
   },
   "scripts": {
     "lint": "eslint .",

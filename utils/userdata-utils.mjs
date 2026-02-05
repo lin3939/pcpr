@@ -65,7 +65,7 @@ export async function writeData(context, local = false){
             });
             let model = await vscode.window.showInputBox({
                 prompt: "AI Model", 
-                placeHolder: "The AI model your want to use",
+                placeHolder: "The AI model you want to use",
                 ignoreFocusOut: true, 
                 password: false
             });
@@ -91,7 +91,7 @@ export async function writeData(context, local = false){
             });
             let model = await vscode.window.showInputBox({
                 prompt: "AI Model(Local)", 
-                placeHolder: "The AI model your want to use",
+                placeHolder: "The AI model you want to use",
                 ignoreFocusOut: true, 
                 password: false
             });
@@ -114,7 +114,7 @@ export async function changeModel(context, local = false){
         try{
             let model = await vscode.window.showInputBox({
                 prompt: "AI Model", 
-                placeHolder: "The AI model your want to use",
+                placeHolder: "The AI model you want to use",
                 ignoreFocusOut: true, 
                 password: false
             });
@@ -134,7 +134,7 @@ export async function changeModel(context, local = false){
         try{
             let model = await vscode.window.showInputBox({
                 prompt: "AI Model(Local)", 
-                placeHolder: "The AI model your want to use",
+                placeHolder: "The AI model you want to use",
                 ignoreFocusOut: true, 
                 password: false
             });

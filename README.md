@@ -18,12 +18,14 @@ Programmer Chat Programming Robot(PCPR in short), powered by AI, which detects l
 - Run **PCPR Check Code** on the command panel(`F1` or `Ctrl/CMD+Shift+P`), and modify the configuration if it is not configured.
 - If you want to modify the configuration later, please run **PCPR Modify Config** and fill in the baseURL, API key, and AI model.
 - If there is no need to modify the baseURL and API key, only the AI model used needs to be modified, please run **PCPR Change Model** and fill in the name of model you want to use.
+- You can also find **PCPR Check Code** in the right-click menu.
 
 ### Local Plan
 - Run **PCPR Local Check** on the command panel(`F1` or `Ctrl/CMD+Shift+P`), and modify the configuration if it is not configured.
 - If you want to modify the configuration later, please run **PCPR Modify Local Config** and fill in the baseURL, API key, and AI model.
 - The default baseURL for the local plan is the default OpenAI capability interface of ollama\-\-**http://localhost:11434/v1/**. If you want to modify it, please use a baseURL that is compatible with the OpenAI API.
 - If there is no need to modify the baseURL and API key, only the AI model used needs to be modified, please run **PCPR Change Local Model** and fill in the name of model you want to use.
+- You can also find **PCPR Local Check** in the right-click menu.
 
 ## Attention
 - All inputs that escaped by `Esc` or are truly empty string inputs are considered as empty string inputs, and the corresponding configuration will be updated to empty \(except those with default values\).
@@ -62,12 +64,14 @@ After running **PCPR Check Code** or **PCPR Local Check**, a prompt *PCPR: Analy
 - 在命令面板（`F1`或`Ctrl/Cmd+Shift+P`）运行**PCPR Check Code**，如果没有配置，则修改配置。
 - 如果您之后想修改配置，请运行**PCPR Modify Config**并填写baseURL, API key和AI model。
 - 如果无需修改baseURL和API key，仅需修改使用的AI model，请运行**PCPR Change Model**并填写想要使用的模型。
+- 您也能在右键菜单中找到 **PCPR Check Code**。 
 
 ### 本地方案
 - 在命令面板（`F1`或`Ctrl/Cmd+Shift+P`）运行**PCPR Local Check**，如果没有配置，则修改配置。
 - 如果您之后想修改配置，请运行**PCPR Modify Local Config**并填写baseURL和AI model。
 - 本地方案的默认baseURL是ollama的默认OpenAI capability接口 **http://localhost:11434/v1/** ，如需修改，请使用其他兼容OpenAI API的baseURL。
 - 如果无需修改baseURL，仅需修改使用的AI model，请运行**PCPR Change Local Model**并填写想要使用的模型。
+- 您也能在右键菜单中找到 **PCPR Local Check**。 
 
 ## 注意
 - 所有`Esc`跳出的输入或真正的空字符串输入都被认为是空字符串输入，将会把对应配置更新为空（有默认值的除外）。
