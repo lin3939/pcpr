@@ -45,15 +45,17 @@
     ],
     "menus": {
       "editor/context": [
-        {"command": "pcpr.checkCode", 
-        "title": "PCPR Check Code",
-        "when": "editorLangId != markdown && editorLangId != plaintext"
+        {
+          "command": "pcpr.checkCode",
+          "title": "PCPR Check Code",
+          "when": "editorLangId != markdown && editorLangId != plaintext"
         },
         {
-        "command": "pcpr.localCheck",
-        "title": "PCPR Local Check",
-        "when": "editorLangId != markdown && editorLangId != plaintext"
-      }]
+          "command": "pcpr.localCheck",
+          "title": "PCPR Local Check",
+          "when": "editorLangId != markdown && editorLangId != plaintext"
+        }
+      ]
     }
   },
   "scripts": {
