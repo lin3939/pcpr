@@ -7,7 +7,6 @@ import path from 'path';
 // No rejection, throw errors instead.
 async function _generateResponse(result) {
     if (!result) {
-        vscode.window.showErrorMessage("No result provided to generateResponse");
         throw new Error("No result provided to generateResponse");
     }
     const content = result.response;
@@ -35,7 +34,7 @@ export async function showResponse(result) {
             return true;
         });
     }catch(err){
-        vscode.window.showErrorMessage("showResponse error: " + String(err));
+        vscode.window.showErrorMessage("Response Open Error: " + String(err));
         return false;
     }
 }

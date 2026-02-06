@@ -41,7 +41,7 @@ async function main(context) {
             return false;
         }
     } catch (error) {
-        vscode.window.showErrorMessage("No file opened." + String(error));
+        vscode.window.showErrorMessage("Cloud Plan Error" + String(error));
         return false;
     }    
 }
@@ -76,7 +76,7 @@ async function ollama_main(context) {
             return false;
         }
     } catch (error) {
-        vscode.window.showErrorMessage("Ollama Error: " + String(error));
+        vscode.window.showErrorMessage("Local Plan Error: " + String(error));
         return false;
     }
 }
@@ -105,9 +105,8 @@ export function activate(context) {
                         }).catch((err)=>{
                             vscode.window.showErrorMessage(`show Error: ${String(err)}`);
                         });
-                    }else{
-                        vscode.window.showErrorMessage("Something went wrong, check your config or status.");
                     }
+
                     statusBar.hide();
                 });
 
@@ -138,9 +137,8 @@ export function activate(context) {
                         }).catch((err)=>{
                             vscode.window.showErrorMessage(`show Error: ${String(err)}`);
                         });
-                    }else{
-                        vscode.window.showErrorMessage("Something went wrong, check your config or status.");
                     }
+
                     statusBar.hide();
                 });
 
