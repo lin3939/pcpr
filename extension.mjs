@@ -5,6 +5,7 @@ import * as userContextUtils from './utils/get-context-utils.mjs';
 import * as responseUtils from './utils/response-utils.mjs';
 import * as keyUtils from './utils/key-utils.mjs';
 import * as webviewUtils from './utils/webview-utils.mjs'
+import { count } from 'console';
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -57,29 +58,35 @@ async function main(context, currentFile, local = false) {
     }
 }
 
-async function web_main(context, input) {
+// Main function to process user request from webview through OpenAI API.
+// Returns Object of necessary information of AI's response on success, false on error.
+async function web_main(context, input, chatHistory = [], local = false) {
     try {
-        const user_data = await userdataUtils.getData(context);
+        const user_data = local ? userdataUtils.getLocalPlanData() : await userdataUtils.getData(context);
         const openai = new OpenAI({
-            apiKey: user_data.apiKey,
+            apiKey: local ? "not-needed" : user_data.apiKey,
             baseURL: user_data.baseURL
         });
-        if (user_data.baseURL && user_data.apiKey && user_data.model) {
-            let completion = await openai.chat.completions.create({
+        if (user_data.baseURL && user_data.model && (local || user_data.apiKey)) {
+            const messages = [];
+            messages.push({ role: 'system', content: userdataUtils.getSysPrompt(context.extensionPath).system_prompt });
+            if (Array.isArray(chatHistory) && chatHistory.length > 0) {
+                for (const item of chatHistory) {
+                    messages.push({ role: item.role, content: item.content });
+                }
+            }
+            messages.push({ role: 'user', content: input });
+
+            const completion = await openai.chat.completions.create({
                 model: user_data.model,
-                messages: [
-                    { "role": "system", "content": userdataUtils.getSysPrompt(context.extensionPath).system_prompt },
-                    { "role": "user", "content": input }
-                ],
-                // stream: false,
-                // stream_options: {include_usage: true}
+                messages: messages
             });
+
             return {
-                // "date": new Date().toLocaleString(),
-                // "file": userContextUtils.getContext().fileName,
-                // "model": user_data.model,
-                // "usage": completion.usage.total_tokens,
-                "response": completion.choices[0].message.content
+                date: new Date().toLocaleString(),
+                model: user_data.model,
+                usage: completion.usage ? completion.usage.total_tokens : 0,
+                response: completion.choices[0].message.content
             };
         } else {
             vscode.window.showWarningMessage("Configuration is not set properly. Please modify configuration.");
@@ -92,7 +99,53 @@ async function web_main(context, input) {
     }
 }
 
+var openedFiles = {};
 export function activate(context) {
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    // Listen to file open events to add opened files into openedFiles object that is used to provide project context in webview chat.
+    const docOpenListener = vscode.workspace.onDidOpenTextDocument(async (document) => {
+        await sleep(100);
+        if (document.uri.scheme === 'file') {
+            var count = 0;
+            while (!userContextUtils.getCurrentFile().filePath && count < 10) {
+                await sleep(100);
+                count++;
+            }
+        };
+        if (count < 10) {
+            const currentFile = userContextUtils.getCurrentFile();
+            if (!Object.keys(openedFiles).includes(currentFile.filePath)) {
+                openedFiles[currentFile.filePath] = currentFile.content;
+            }
+        }
+    });
+    context.subscriptions.push(docOpenListener);
+
+    // keep openedFiles updated when documents change
+    const docChangeListener = vscode.workspace.onDidChangeTextDocument(async (e) => {
+        try {
+            const doc = e.document;
+            if (doc && doc.uri && doc.uri.scheme === 'file') {
+                openedFiles[doc.uri.fsPath] = doc.getText();
+            }
+        } catch (err) {
+            console.error('docChangeListener error', err);
+        }
+    });
+    context.subscriptions.push(docChangeListener);
+
+    // populate openedFiles from currently visible editors at activation
+    try {
+        for (const editor of vscode.window.visibleTextEditors) {
+            const doc = editor.document;
+            if (doc && doc.uri && doc.uri.scheme === 'file') {
+                openedFiles[doc.uri.fsPath] = doc.getText();
+            }
+        }
+    } catch (err) {
+        console.error('init openedFiles error', err);
+    }
 
     const checkCode = vscode.commands.registerCommand('pcpr.checkCode', async function () {
         try {
@@ -182,6 +235,9 @@ export function activate(context) {
                 retainContextWhenHidden: true
             }
         );
+        panel.webview.postMessage({ command: 'projectContext', data: { openedFiles } });
+
+        let chatHistory = [];
         const scriptPath = vscode.Uri.joinPath(context.extensionUri, 'webview', 'scripts', 'main.js');
         const stylePath = vscode.Uri.joinPath(context.extensionUri, 'webview', 'css', 'style.css');
         const scriptUri = panel.webview.asWebviewUri(scriptPath).toString();
@@ -195,14 +251,19 @@ export function activate(context) {
             CSP: cspMeta
         });
         panel.webview.html = html;
+
         panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.command) {
                 case 'chat':
-                    const response = await web_main(context, message.text);
+                    let totalInupt = JSON.stringify(openedFiles) + message.text;
+                    const response = await web_main(context, totalInupt, chatHistory);
+                    chatHistory.push({ role: 'user', content: message.text });
+                    chatHistory.push({ role: 'assistant', content: response.response });
+                    if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
                     panel.webview.postMessage({ command: 'agentResponse', text: response.response });
                     break;
                 default:
-                    vscode.window.showErrorMessage("default" + message.command);
+                    vscode.window.showErrorMessage("Unknown command: " + message.command);
             }
         });
 

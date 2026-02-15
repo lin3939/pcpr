@@ -14,7 +14,10 @@
     "url": "https://github.com/lin3939/pcpr.git"
   },
   "license": "MIT",
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished",
+    "onOpenFile"
+  ],
   "main": "./extension.mjs",
   "contributes": {
     "commands": [

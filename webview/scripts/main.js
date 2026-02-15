@@ -4,6 +4,7 @@ const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 
 let isStreaming = false;
+let projectContext = null;
 
 function appendMessage(content, sender) {
     const msgDiv = document.createElement('div');
@@ -29,6 +30,7 @@ function streamAgentMessage(text) {
             setTimeout(typeChar, 18);
         } else {
             isStreaming = false;
+            sendBtn.disabled = false;
         }
     }
     typeChar();
@@ -39,7 +41,8 @@ sendBtn.addEventListener('click', () => {
 });
 
 chatInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
         sendUserMessage();
     }
 });
@@ -55,8 +58,20 @@ function sendUserMessage() {
 
 window.addEventListener('message', event => {
     const message = event.data;
-    if (message.command === 'agentResponse') {
-        sendBtn.disabled = false;
-        streamAgentMessage(message.text);
+    switch (message.command) {
+        case 'projectContext':
+            projectContext = message.data;
+            try {
+                const fileCount = projectContext.openedFiles ? Object.keys(projectContext.openedFiles).length : 0;
+                appendMessage(`dev: Project loaded: ${fileCount} opened file(s) recorded.`, 'agent');
+            } catch (e) {
+                console.error(e);
+            }
+            break;
+        case 'agentResponse':
+            streamAgentMessage(message.text);
+            break;
+        default:
+            break;
     }
 });
