@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import OpenAI from 'openai';
 import * as userdataUtils from './utils/userdata-utils.mjs';
-import * as userContext from './utils/get-context-utils.mjs';
+import * as userContextUtils from './utils/get-context-utils.mjs';
 import * as responseUtils from './utils/response-utils.mjs';
 import * as keyUtils from './utils/key-utils.mjs';
 import * as webviewUtils from './utils/webview-utils.mjs'
@@ -12,40 +12,51 @@ import * as webviewUtils from './utils/webview-utils.mjs'
 
 // Main function to process user request through OpenAI API.
 // Returns Object of necessary information of AI's response on success, false on error.
-async function main(context) {
+async function main(context, currentFile, local = false) {
     try {
-        const user_data = await userdataUtils.getData(context);
+        const user_data = local ? userdataUtils.getLocalPlanData() : await userdataUtils.getData(context);
         const openai = new OpenAI({
-            apiKey: user_data.apiKey,
+            apiKey: local ? "not-needed" : user_data.apiKey,
             baseURL: user_data.baseURL
         });
-        if (user_data.baseURL && user_data.apiKey && user_data.model) {
-            let completion = await openai.chat.completions.create({
+        if (local && user_data.baseURL && user_data.model) {
+            var completion = await openai.chat.completions.create({
                 model: user_data.model,
                 messages: [
                     { "role": "system", "content": userdataUtils.getSysPrompt(context.extensionPath).system_prompt },
-                    { "role": "user", "content": userContext.getContext().content }
+                    { "role": "user", "content": currentFile.content }
+                ],
+                // stream: false,
+                // stream_options: {include_usage: true}
+            })
+        } else if (!local && user_data.baseURL && user_data.apiKey && user_data.model) {
+            var completion = await openai.chat.completions.create({
+                model: user_data.model,
+                messages: [
+                    { "role": "system", "content": userdataUtils.getSysPrompt(context.extensionPath).system_prompt },
+                    { "role": "user", "content": currentFile.content }
                 ],
                 // stream: false,
                 // stream_options: {include_usage: true}
             });
-            return {
-                "date": new Date().toLocaleString(),
-                "file": userContext.getContext().fileName,
-                "model": user_data.model,
-                "usage": completion.usage.total_tokens,
-                "response": completion.choices[0].message.content
-            };
         } else {
             vscode.window.showWarningMessage("Configuration is not set properly. Please modify configuration.");
             await userdataUtils.modifyConfig(context);
             return false;
-        }
+        };
+        return {
+            "date": new Date().toLocaleString(),
+            "file": currentFile.fileName,
+            "model": user_data.model,
+            "usage": completion.usage.total_tokens,
+            "response": completion.choices[0].message.content
+        };
     } catch (error) {
-        vscode.window.showErrorMessage("Cloud Plan Error" + String(error));
+        vscode.window.showErrorMessage("Response Error: " + String(error));
         return false;
     }
 }
+
 async function web_main(context, input) {
     try {
         const user_data = await userdataUtils.getData(context);
@@ -65,7 +76,7 @@ async function web_main(context, input) {
             });
             return {
                 // "date": new Date().toLocaleString(),
-                // "file": userContext.getContext().fileName,
+                // "file": userContextUtils.getContext().fileName,
                 // "model": user_data.model,
                 // "usage": completion.usage.total_tokens,
                 "response": completion.choices[0].message.content
@@ -81,56 +92,18 @@ async function web_main(context, input) {
     }
 }
 
-// Main function to process user request through ollama's OpenAI API capability.
-// Returns Object of necessary information of AI's response on success, false on error.
-async function ollama_main(context) {
-    try {
-        const user_data = userdataUtils.getLocalPlanData();
-        const openai = new OpenAI({
-            apiKey: "not-needed",
-            baseURL: user_data.baseURL
-        });
-        if (user_data.baseURL && user_data.model) {
-            let completion = await openai.chat.completions.create({
-                model: user_data.model,
-                messages: [
-                    { "role": "system", "content": userdataUtils.getSysPrompt(context.extensionPath).system_prompt },
-                    { "role": "user", "content": userContext.getContext().content }
-                ],
-                // stream: false,
-                // stream_options: {include_usage: true}
-            });
-            return {
-                "date": new Date().toLocaleString(),
-                "file": userContext.getContext().fileName,
-                "model": user_data.model,
-                "usage": completion.usage.total_tokens,
-                "response": completion.choices[0].message.content
-            };
-        } else {
-            vscode.window.showWarningMessage("Configuration is not set properly. Please modify configuration.");
-            await userdataUtils.modifyConfig(context);
-            return false;
-        }
-    } catch (error) {
-        vscode.window.showErrorMessage("Local Plan Error: " + String(error));
-        return false;
-    }
-}
-
-
-
 export function activate(context) {
 
     const checkCode = vscode.commands.registerCommand('pcpr.checkCode', async function () {
         try {
             const user_data = await userdataUtils.getData(context);
+            const currentFile = userContextUtils.getContext();
             if (user_data.baseURL && user_data.apiKey && user_data.model) {
                 const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
                 statusBar.text = "$(sync-spin)PCPR: Analyzing....";
                 statusBar.show();
 
-                main(context).then((result) => {
+                main(context, currentFile).then((result) => {
                     if (result) {
                         responseUtils.showResponse(result).then((err) => {
                             if (err) {
@@ -158,12 +131,13 @@ export function activate(context) {
     const localCheck = vscode.commands.registerCommand('pcpr.localCheck', async function () {
         try {
             const user_data = userdataUtils.getLocalPlanData();
+            const currentFile = userContextUtils.getContext();
             if (user_data.baseURL && user_data.model) {
                 const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
                 statusBar.text = "$(sync-spin)PCPR: Local Analyzing....";
                 statusBar.show();
 
-                ollama_main(context).then((result) => {
+                main(context, currentFile, true).then((result) => {
                     if (result) {
                         responseUtils.showResponse(result).then((err) => {
                             if (err) {
