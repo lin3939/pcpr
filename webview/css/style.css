@@ -1,0 +1,95 @@
+/* PCPR Chat Webview Styles */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background: #252526;
+    padding: 16px;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid #333;
+}
+
+.chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 70vh;
+}
+
+.message {
+    margin-bottom: 12px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    max-width: 70%;
+    word-break: break-word;
+    font-size: 1em;
+}
+
+.message.user {
+    background: #007acc;
+    color: #fff;
+    align-self: flex-end;
+}
+
+.message.agent {
+    background: #2d2d2d;
+    color: #d4d4d4;
+    align-self: flex-start;
+}
+
+.input-area {
+    display: flex;
+    padding: 16px;
+    background: #252526;
+    border-top: 1px solid #333;
+}
+
+.input-area input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1em;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    margin-right: 8px;
+}
+
+.input-area button {
+    background: #007acc;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.input-area button:disabled {
+    background: #555;
+    cursor: not-allowed;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    background: #252526;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+}

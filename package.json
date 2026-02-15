@@ -33,6 +33,10 @@
       {
         "command": "pcpr.clearAPIKey",
         "title": "PCPR Clear API Key"
+      },
+      {
+        "command": "pcpr.webviewChat",
+        "title": "PCPR Web View Chat"
       }
     ],
     "configuration": {
