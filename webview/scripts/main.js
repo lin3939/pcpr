@@ -23,10 +23,14 @@ function streamAgentMessage(text) {
     chatContainer.scrollTop = chatContainer.scrollHeight;
 
     function typeChar() {
-        if (i < text.length) {
-            msgDiv.textContent += text[i];
-            i++;
+        if (i <= text.length) {
+            if (window.marked && typeof window.marked.parse === 'function') {
+                msgDiv.innerHTML = window.marked.parse(text.slice(0, i));
+            } else {
+                msgDiv.textContent = text.slice(0, i);
+            }
             chatContainer.scrollTop = chatContainer.scrollHeight;
+            i++;
             setTimeout(typeChar, 18);
         } else {
             isStreaming = false;

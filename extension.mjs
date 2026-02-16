@@ -239,14 +239,17 @@ export function activate(context) {
 
         let chatHistory = [];
         const scriptPath = vscode.Uri.joinPath(context.extensionUri, 'webview', 'scripts', 'main.js');
+        const markedPath = vscode.Uri.joinPath(context.extensionUri, 'webview', 'scripts', 'marked.min.js');
         const stylePath = vscode.Uri.joinPath(context.extensionUri, 'webview', 'css', 'style.css');
         const scriptUri = panel.webview.asWebviewUri(scriptPath).toString();
+        const markedUri = panel.webview.asWebviewUri(markedPath).toString();
         const styleUri = panel.webview.asWebviewUri(stylePath).toString();
 
         const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${panel.webview.cspSource} https: data:; script-src ${panel.webview.cspSource}; style-src ${panel.webview.cspSource};">`;
 
         const html = webviewUtils.getWebPage(context.extensionPath, {
             SCRIPT_URI: scriptUri,
+            MARKED_URI: markedUri,
             STYLE_URI: styleUri,
             CSP: cspMeta
         });
