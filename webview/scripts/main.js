@@ -80,7 +80,16 @@ window.addEventListener('message', event => {
             break;
         case 'agentResponse':
             if (loadingSpinner) loadingSpinner.style.display = 'none';
-            streamAgentMessage(message.text);
+            try {
+                if (message.text) {
+                    streamAgentMessage(message.text);
+                } else {
+                    sendBtn.disabled = false;
+                }
+            } catch (e) {
+                console.error(e);
+                sendBtn.disabled = false;
+            }
             break;
         default:
             break;

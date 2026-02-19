@@ -94,7 +94,7 @@ async function web_main(context, input, chatHistory = [], local = false) {
             return false;
         }
     } catch (error) {
-        vscode.window.showErrorMessage("Cloud Plan Error" + String(error));
+        vscode.window.showErrorMessage("Webview Error: " + String(error));
         return false;
     }
 }
@@ -262,9 +262,13 @@ export function activate(context) {
                     const useLocal = !!message.local;
                     const response = await web_main(context, totalInupt, chatHistory, useLocal);
                     chatHistory.push({ role: 'user', content: message.text });
-                    chatHistory.push({ role: 'assistant', content: response.response });
-                    if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
-                    panel.webview.postMessage({ command: 'agentResponse', text: response.response });
+                    if (response && response.response) {
+                        chatHistory.push({ role: 'assistant', content: response.response });
+                        if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+                        panel.webview.postMessage({ command: 'agentResponse', text: response.response });
+                    } else {
+                        panel.webview.postMessage({ command: 'agentResponse', text: 'Something went wrong.' });
+                    }
                     break;
                 default:
                     vscode.window.showErrorMessage("Unknown command: " + message.command);
