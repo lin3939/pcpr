@@ -69,7 +69,7 @@ async function web_main(context, input, chatHistory = [], local = false) {
         });
         if (user_data.baseURL && user_data.model && (local || user_data.apiKey)) {
             const messages = [];
-            messages.push({ role: 'system', content: userdataUtils.getSysPrompt(context.extensionPath).system_prompt });
+            messages.push({ role: 'system', content: userdataUtils.getSysPrompt(context.extensionPath).system_prompt_web });
             if (Array.isArray(chatHistory) && chatHistory.length > 0) {
                 for (const item of chatHistory) {
                     messages.push({ role: item.role, content: item.content });

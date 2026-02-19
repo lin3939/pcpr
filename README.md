@@ -5,5 +5,4 @@ TODO:
 - [x] let AI get context of the project
 - [x] make webview flipable
 - [x] markdown rendering
-- [ ] let AI remember dialogues
 - [ ] what else...?
