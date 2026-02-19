@@ -130,7 +130,7 @@ export function activate(context) {
                 openedFiles[doc.uri.fsPath] = doc.getText();
             }
         } catch (err) {
-            console.error('docChangeListener error', err);
+            vscode.window.showErrorMessage(`docChangeListener error: ${String(err)}`);
         }
     });
     context.subscriptions.push(docChangeListener);
@@ -144,7 +144,7 @@ export function activate(context) {
             }
         }
     } catch (err) {
-        console.error('init openedFiles error', err);
+        vscode.window.showErrorMessage(`init openedFiles error: ${String(err)}`);
     }
 
     const checkCode = vscode.commands.registerCommand('pcpr.checkCode', async function () {
@@ -228,7 +228,7 @@ export function activate(context) {
     const webviewChat = vscode.commands.registerCommand('pcpr.webviewChat', async function () {
         const panel = vscode.window.createWebviewPanel(
             'pcprWebviewChat',
-            'webviewChat',
+            'PCPR Webview',
             vscode.ViewColumn.One,
             {
                 enableScripts: true,
@@ -259,7 +259,8 @@ export function activate(context) {
             switch (message.command) {
                 case 'chat':
                     let totalInupt = JSON.stringify(openedFiles) + message.text;
-                    const response = await web_main(context, totalInupt, chatHistory);
+                    const useLocal = !!message.local;
+                    const response = await web_main(context, totalInupt, chatHistory, useLocal);
                     chatHistory.push({ role: 'user', content: message.text });
                     chatHistory.push({ role: 'assistant', content: response.response });
                     if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);

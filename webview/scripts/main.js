@@ -2,6 +2,7 @@ const vscode = acquireVsCodeApi();
 const chatContainer = document.getElementById('chat-container');
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
+const localPlanToggle = document.getElementById('local-plan-toggle');
 
 let isStreaming = false;
 let projectContext = null;
@@ -57,7 +58,8 @@ function sendUserMessage() {
     appendMessage(content, 'user');
     chatInput.value = '';
     sendBtn.disabled = true;
-    vscode.postMessage({ command: 'chat', text: content });
+    const useLocal = localPlanToggle && localPlanToggle.checked;
+    vscode.postMessage({ command: 'chat', text: content, local: useLocal });
 }
 
 window.addEventListener('message', event => {

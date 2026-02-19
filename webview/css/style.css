@@ -59,6 +59,17 @@ body {
     border-top: 1px solid #333;
 }
 
+.plan-toggle {
+    background: #252526;
+    color: #d4d4d4;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    position: relative;
+    bottom: 0;
+    display: flex;
+}
+
 .input-area input {
     flex: 1;
     padding: 10px;

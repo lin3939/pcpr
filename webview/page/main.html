@@ -10,13 +10,17 @@
 </head>
 
 <body>
-    <div class="header">PCPR AI Chat</div>
+    <div class="header">PCPR Webview</div>
     <div class="chat-container" id="chat-container">
         <!-- Messages will be dynamically inserted here -->
     </div>
     <div class="input-area">
         <input type="text" id="chat-input" placeholder="Type your message..." autocomplete="off" />
         <button id="send-btn">Send</button>
+        <div class="plan-toggle" style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="local-plan-toggle" />
+            <label for="local-plan-toggle">Local Plan</label>
+        </div>
     </div>
     <script src="%MARKED_URI%"></script>
     <script src="%SCRIPT_URI%"></script>
