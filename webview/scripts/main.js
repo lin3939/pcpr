@@ -3,6 +3,7 @@ const chatContainer = document.getElementById('chat-container');
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const localPlanToggle = document.getElementById('local-plan-toggle');
+localPlanToggle.checked = true;
 const loadingSpinner = document.getElementById('loading-spinner');
 if (loadingSpinner) loadingSpinner.style.display = 'none';
 
