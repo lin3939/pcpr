@@ -3,6 +3,8 @@ const chatContainer = document.getElementById('chat-container');
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const localPlanToggle = document.getElementById('local-plan-toggle');
+const loadingSpinner = document.getElementById('loading-spinner');
+if (loadingSpinner) loadingSpinner.style.display = 'none';
 
 let isStreaming = false;
 let projectContext = null;
@@ -58,6 +60,7 @@ function sendUserMessage() {
     appendMessage(content, 'user');
     chatInput.value = '';
     sendBtn.disabled = true;
+    if (loadingSpinner) loadingSpinner.style.display = 'flex';
     const useLocal = localPlanToggle && localPlanToggle.checked;
     vscode.postMessage({ command: 'chat', text: content, local: useLocal });
 }
@@ -69,12 +72,13 @@ window.addEventListener('message', event => {
             projectContext = message.data;
             try {
                 const fileCount = projectContext.openedFiles ? Object.keys(projectContext.openedFiles).length : 0;
-                appendMessage(`dev: Project loaded: ${fileCount} opened file(s) recorded.`, 'agent');
+                // appendMessage(`dev: Project loaded: ${fileCount} opened file(s) recorded.`, 'agent');
             } catch (e) {
                 console.error(e);
             }
             break;
         case 'agentResponse':
+            if (loadingSpinner) loadingSpinner.style.display = 'none';
             streamAgentMessage(message.text);
             break;
         default:
