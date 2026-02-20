@@ -23,15 +23,27 @@ function streamAgentMessage(text) {
     isStreaming = true;
     const msgDiv = document.createElement('div');
     msgDiv.className = 'message agent';
+
+    // Info container for model and usage
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'agent-info';
+    infoDiv.style.fontSize = '0.75em';
+    infoDiv.style.color = '#aaa';
+    infoDiv.style.marginBottom = '2px';
+    msgDiv.appendChild(infoDiv);
+
+    // Content container for streaming text
+    const contentDiv = document.createElement('div');
+    msgDiv.appendChild(contentDiv);
     chatContainer.appendChild(msgDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
 
     function typeChar() {
         if (i <= text.length) {
             if (window.marked && typeof window.marked.parse === 'function') {
-                msgDiv.innerHTML = window.marked.parse(text.slice(0, i));
+                contentDiv.innerHTML = window.marked.parse(text.slice(0, i));
             } else {
-                msgDiv.textContent = text.slice(0, i);
+                contentDiv.textContent = text.slice(0, i);
             }
             chatContainer.scrollTop = chatContainer.scrollHeight;
             i++;
@@ -83,6 +95,20 @@ window.addEventListener('message', event => {
             try {
                 if (message.text) {
                     streamAgentMessage(message.text);
+                    // Find the last agent message and fill infoDiv
+                    setTimeout(() => {
+                        const agentMessages = chatContainer.getElementsByClassName('message agent');
+                        if (agentMessages.length > 0) {
+                            const lastAgentMsg = agentMessages[agentMessages.length - 1];
+                            const infoDiv = lastAgentMsg.querySelector('.agent-info');
+                            if (infoDiv) {
+                                let infoText = '';
+                                if (message.model) infoText += `Model: ${message.model}`;
+                                if (message.usage !== undefined) infoText += `${infoText ? ' | ' : ''}Tokens: ${message.usage}`;
+                                infoDiv.textContent = infoText;
+                            }
+                        }
+                    }, 10);
                 } else {
                     sendBtn.disabled = false;
                 }

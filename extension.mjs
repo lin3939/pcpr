@@ -265,7 +265,12 @@ export function activate(context) {
                     if (response && response.response) {
                         chatHistory.push({ role: 'assistant', content: response.response });
                         if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
-                        panel.webview.postMessage({ command: 'agentResponse', text: response.response });
+                        panel.webview.postMessage({
+                            command: 'agentResponse',
+                            text: response.response,
+                            model: response.model,
+                            usage: response.usage
+                        });
                     } else {
                         panel.webview.postMessage({ command: 'agentResponse', text: 'Something went wrong.' });
                     }

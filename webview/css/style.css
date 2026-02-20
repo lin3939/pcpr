@@ -92,6 +92,13 @@ body {
     }
 }
 
+.agent-info {
+    font-size: 0.75em;
+    color: #aaa;
+    margin-bottom: 2px;
+    margin-left: 2px;
+}
+
 .input-area input {
     flex: 1;
     padding: 10px;

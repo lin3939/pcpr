@@ -13,7 +13,7 @@ export function getSysPrompt(extensionPath) {
 }
 
 // Gets current configuraion.
-// Returns Object of configuration on success, fasle on error.
+// Returns Object of configuration on success, false on error.
 export async function getData(context) {
     try {
         const config = vscode.workspace.getConfiguration('pcpr');
@@ -31,7 +31,7 @@ export async function getData(context) {
 }
 
 // Gets current local plan configuraion.
-// Returns Object of configuration on success, fasle on error.
+// Returns Object of configuration on success, false on error.
 export function getLocalPlanData() {
     try {
         const config = vscode.workspace.getConfiguration('pcpr');
