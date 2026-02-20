@@ -2,7 +2,7 @@
   "name": "pcpr",
   "displayName": "Programmer Chat Programming Robot",
   "description": "A Programmer Chat Programming Robot, detecting logical errors in your code.",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -39,7 +39,7 @@
       },
       {
         "command": "pcpr.webviewChat",
-        "title": "PCPR Web View Chat"
+        "title": "PCPR Web Chat"
       }
     ],
     "configuration": {
