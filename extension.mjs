@@ -5,7 +5,6 @@ import * as userContextUtils from './utils/get-context-utils.mjs';
 import * as responseUtils from './utils/response-utils.mjs';
 import * as keyUtils from './utils/key-utils.mjs';
 import * as webviewUtils from './utils/webview-utils.mjs'
-import { count } from 'console';
 
 /**
  * @param {vscode.ExtensionContext} context
