@@ -105,13 +105,15 @@ export function activate(context) {
     // Listen to file open events to add opened files into openedFiles object that is used to provide project context in webview chat.
     const docOpenListener = vscode.workspace.onDidOpenTextDocument(async (document) => {
         await sleep(100);
-        if (document.uri.scheme === 'file') {
+        if (document.uri.scheme === 'file' && document.languageId !== 'markdown' && document.languageId !== 'plaintext' && document.languageId !== 'ignore' && document.languageId !== 'code-text-binary' && document.languageId !== 'log') {
             var count = 0;
             while (!userContextUtils.getCurrentFile().filePath && count < 10) {
                 await sleep(100);
                 count++;
             }
-        };
+        } else {
+            return false;
+        }
         if (count < 10) {
             const currentFile = userContextUtils.getCurrentFile();
             if (!Object.keys(openedFiles).includes(currentFile.filePath)) {
@@ -125,7 +127,7 @@ export function activate(context) {
     const docChangeListener = vscode.workspace.onDidChangeTextDocument(async (e) => {
         try {
             const doc = e.document;
-            if (doc && doc.uri && doc.uri.scheme === 'file') {
+            if (doc && doc.uri && doc.uri.scheme === 'file' && openedFiles[doc.uri.fsPath] !== undefined) {
                 openedFiles[doc.uri.fsPath] = doc.getText();
             }
         } catch (err) {
@@ -138,7 +140,7 @@ export function activate(context) {
     try {
         for (const editor of vscode.window.visibleTextEditors) {
             const doc = editor.document;
-            if (doc && doc.uri && doc.uri.scheme === 'file') {
+            if (doc && doc.uri && doc.uri.scheme === 'file' && doc.languageId !== 'markdown' && doc.languageId !== 'plaintext' && doc.languageId !== 'ignore' && doc.languageId !== 'code-text-binary' && doc.languageId !== 'log') {
                 openedFiles[doc.uri.fsPath] = doc.getText();
             }
         }
