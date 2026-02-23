@@ -85,12 +85,17 @@
         {
           "command": "pcpr.checkCode",
           "title": "PCPR Check Code",
-          "when": "editorLangId != markdown && editorLangId != plaintext"
+          "when": "editorLangId != markdown && editorLangId != plaintext && editorLangId != ignore && editorLangId != code-text-binary"
         },
         {
           "command": "pcpr.localCheck",
           "title": "PCPR Local Check",
-          "when": "editorLangId != markdown && editorLangId != plaintext"
+          "when": "editorLangId != markdown && editorLangId != plaintext && editorLangId != ignore && editorLangId != code-text-binary"
+        },
+        {
+          "command": "pcpr.webviewChat",
+          "title": "PCPR Web Chat",
+          "when": "editorLangId != code-text-binary"
         }
       ]
     }
