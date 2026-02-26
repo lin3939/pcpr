@@ -82,7 +82,7 @@ async function web_main(context, input, chatHistory = [], local = false) {
             });
 
             return {
-                date: new Date().toLocaleString(),
+                // date: new Date().toLocaleString(),
                 model: user_data.model,
                 usage: completion.usage ? completion.usage.total_tokens : 0,
                 response: completion.choices[0].message.content
@@ -259,7 +259,7 @@ export function activate(context) {
         panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.command) {
                 case 'chat':
-                    let totalInupt = JSON.stringify(openedFiles) + message.text;
+                    let totalInupt = JSON.stringify(openedFiles) + "|" + message.text;
                     const useLocal = !!message.local;
                     const response = await web_main(context, totalInupt, chatHistory, useLocal);
                     chatHistory.push({ role: 'user', content: message.text });

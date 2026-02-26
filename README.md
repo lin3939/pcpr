@@ -1,3 +1,5 @@
+# This version is still in development.
+
 # PCPR — Programmer Chat Programming Robot
 
 # English
