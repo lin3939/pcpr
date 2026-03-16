@@ -59,7 +59,7 @@ async function main(context, currentFile, local = false) {
 
 // Main function to process user request from webview through OpenAI API.
 // Returns Object of necessary information of AI's response on success, false on error.
-async function web_main(context, input, chatHistory = [], local = false) {
+async function web_main(context, input, chatHistory = [], local = false, ProjectStructure = "") {
     try {
         const user_data = local ? userdataUtils.getLocalPlanData() : await userdataUtils.getData(context);
         const openai = new OpenAI({
@@ -68,7 +68,9 @@ async function web_main(context, input, chatHistory = [], local = false) {
         });
         if (user_data.baseURL && user_data.model && (local || user_data.apiKey)) {
             const messages = [];
-            messages.push({ role: 'system', content: userdataUtils.getSysPrompt(context.extensionPath).system_prompt_web });
+            let sysPrompt = userdataUtils.getSysPrompt(context.extensionPath).system_prompt_web;
+            sysPrompt += ProjectStructure ? "<c>The structure of user's project is:\n" + ProjectStructure + "</c>" : "";
+            messages.push({ role: 'system', content: sysPrompt });
             if (Array.isArray(chatHistory) && chatHistory.length > 0) {
                 for (const item of chatHistory) {
                     messages.push({ role: item.role, content: item.content });
@@ -99,7 +101,10 @@ async function web_main(context, input, chatHistory = [], local = false) {
 }
 
 var openedFiles = {};
-export function activate(context) {
+export async function activate(context) {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    var structure = await userContextUtils.getWorkspaceStructure(workspaceFolders);
+
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     // Listen to file open events to add opened files into openedFiles object that is used to provide project context in webview chat.
@@ -273,7 +278,7 @@ export function activate(context) {
                 case 'chat':
                     let totalInupt = JSON.stringify(openedFiles) + "|" + message.text;
                     const useLocal = !!message.local;
-                    const response = await web_main(context, totalInupt, chatHistory, useLocal);
+                    const response = await web_main(context, totalInupt, chatHistory, useLocal, structure);
                     chatHistory.push({ role: 'user', content: message.text });
                     if (response && response.response) {
                         chatHistory.push({ role: 'assistant', content: response.response });
