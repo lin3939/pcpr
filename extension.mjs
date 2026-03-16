@@ -128,7 +128,7 @@ export async function activate(context) {
     });
     context.subscriptions.push(docOpenListener);
 
-    // keep openedFiles updated when documents change
+    // keep openedFiles updated when documents change.
     const docChangeListener = vscode.workspace.onDidChangeTextDocument(async (e) => {
         try {
             const doc = e.document;
@@ -141,17 +141,19 @@ export async function activate(context) {
     });
     context.subscriptions.push(docChangeListener);
 
-    // keep openedFiles updated when documents close, remove from openedFiles to save memory
-    const docCloseListener = vscode.workspace.onDidCloseTextDocument(async (doc) => {
+    // keep openedFiles updated when documents are deleted.
+    const docDeleteListener = vscode.workspace.onDidDeleteFiles(async (e) => {
         try {
-            if (doc && doc.uri && doc.uri.scheme === 'file' && openedFiles[doc.uri.fsPath] !== undefined) {
-                delete openedFiles[doc.uri.fsPath];
+            for (const file of e.files) {
+                if (file && file.fsPath && openedFiles[file.fsPath] !== undefined) {
+                    delete openedFiles[file.fsPath];
+                }
             }
         } catch (err) {
-            vscode.window.showErrorMessage(`docCloseListener error: ${String(err)}`);
+            vscode.window.showErrorMessage(`docDeleteListener error: ${String(err)}`);
         }
     });
-    context.subscriptions.push(docCloseListener);
+    context.subscriptions.push(docDeleteListener);
 
     // populate openedFiles from currently visible editors at activation
     try {
