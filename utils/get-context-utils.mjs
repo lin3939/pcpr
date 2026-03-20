@@ -1,6 +1,25 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
+import ignore from "ignore"
+
+const COMMON_IGNORED_CONTENT = ["node_modules/",
+    "vendor/",
+    "venv/",
+    "__pycache__/",
+    "dist/",
+    "build/",
+    "target/",
+    "out/",
+    ".env",
+    ".env.*",
+    "!.env.example",
+    "*.log",
+    "npm-debug.log*",
+    "yarn-debug.log*",
+    "yarn-error.log*",
+    ".DS_Store",
+    "Thumbs.db"].join("\n");
 
 // Get information of file that user is editing.(active text editor)
 export function getContext() {
@@ -39,17 +58,21 @@ function generateDirectoryStructureString(structureObj) {
     return result;
 }
 
-async function generateDirectoryStructureObject(rootPath, depth) {
+async function generateDirectoryStructureObject(gitignorePath, ignoredPattens, rootPath, depth) {
     let structureObj = [];
     const items = await fs.promises.readdir(rootPath, { withFileTypes: true });
     for (const item of items) {
         const itemPath = path.join(rootPath, item.name);
+        let relativePath = item.isDirectory() ? path.relative(gitignorePath, itemPath) + "/" : path.relative(gitignorePath, itemPath);
+        if (ignoredPattens.ignores(relativePath)) {
+            continue;
+        }
         if (item.isDirectory()) {
             structureObj.push({
                 name: item.name,
                 type: "directory",
                 depth: depth,
-                children: await generateDirectoryStructureObject(itemPath, depth + 1)
+                children: await generateDirectoryStructureObject(gitignorePath, ignoredPattens, itemPath, depth + 1)
             });
         } else {
             structureObj.push({
@@ -62,9 +85,20 @@ async function generateDirectoryStructureObject(rootPath, depth) {
     return structureObj;
 }
 
-async function generateDirectoryStructure(rootPath, depth) {
-    const structureObj = await generateDirectoryStructureObject(rootPath, depth);
+async function generateDirectoryStructure(gitignorePath, ignoredPattens, rootPath, depth) {
+    const structureObj = await generateDirectoryStructureObject(gitignorePath, ignoredPattens, rootPath, depth);
     return generateDirectoryStructureString(structureObj);
+}
+
+function getIgnoredPattens(rootPath) {
+    const gitignorePath = path.join(rootPath, ",gitignore");
+    if (fs.existsSync(gitignorePath)) {
+        var gitignoreContent = fs.readFileSync(gitignorePath, "utf-8");
+    } else {
+        var gitignoreContent = COMMON_IGNORED_CONTENT;
+    }
+    const ig = ignore().add(gitignoreContent);
+    return ig;
 }
 
 // Get workspace structure.
@@ -72,7 +106,8 @@ export async function getWorkspaceStructure(workspaceFolders) {
 
     if (workspaceFolders) {
         const rootPath = workspaceFolders[0].uri.fsPath;
-        const structure = await generateDirectoryStructure(rootPath, 1);
+        let ignoredPattens = getIgnoredPattens(rootPath);
+        const structure = await generateDirectoryStructure(rootPath, ignoredPattens, rootPath, 1);
         return structure;
     }
     return [];
