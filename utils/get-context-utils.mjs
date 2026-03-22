@@ -85,9 +85,9 @@ async function generateDirectoryStructureObject(gitignorePath, ignoredPattens, r
     return structureObj;
 }
 
-async function generateDirectoryStructure(gitignorePath, ignoredPattens, rootPath, depth) {
+async function generateDirectoryStructure(rootPAthName, gitignorePath, ignoredPattens, rootPath, depth) {
     const structureObj = await generateDirectoryStructureObject(gitignorePath, ignoredPattens, rootPath, depth);
-    return generateDirectoryStructureString(structureObj);
+    return rootPAthName + "\n" + generateDirectoryStructureString(structureObj);
 }
 
 function getIgnoredPattens(rootPath) {
@@ -103,11 +103,11 @@ function getIgnoredPattens(rootPath) {
 
 // Get workspace structure.
 export async function getWorkspaceStructure(workspaceFolders) {
-
     if (workspaceFolders) {
         const rootPath = workspaceFolders[0].uri.fsPath;
+        const rootPathName = path.basename(rootPath);
         let ignoredPattens = getIgnoredPattens(rootPath);
-        const structure = await generateDirectoryStructure(rootPath, ignoredPattens, rootPath, 1);
+        const structure = await generateDirectoryStructure(rootPathName, rootPath, ignoredPattens, rootPath, 1);
         return structure;
     }
     return [];
