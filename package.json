@@ -19,6 +19,7 @@
     "onOpenFile"
   ],
   "main": "./extension.mjs",
+  "icon": "./logo.png",
   "contributes": {
     "commands": [
       {
