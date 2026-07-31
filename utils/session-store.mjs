@@ -1,163 +1,152 @@
 import * as fs from "fs";
-import { Session } from "inspector";
-import { Messages } from "openai/resources/chat/completions.mjs";
 import * as path from "path";
 
 const FILE_NAME = 'sessions.json';
 const DEFAULT_SESSION_NAME = '新对话';
 
-let filePath=null;
-let cache=null;
-
+let filePath = null;
+let cache = null;
 
 const getRandomID = () => `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 10)}`;
 
-function getCache(){
-    try{
+function getCache() {
+    try {
         const raw = fs.readFileSync(filePath, 'utf-8');
         cache = JSON.parse(raw);
-    }catch(error){
-        cache={
-            sessions:[],
+    } catch (error) {
+        cache = {
+            sessions: [],
             activeSessionId: null
-        }
+        };
     }
-    return cache
+    return cache;
 }
 
-function saveCache(){
-    const dir=path.dirname(filePath);
-    fs.mkdirSync(dir,{recursive:true});
-    fs.writeFileSync(filePath,JSON.stringify(cache,null,2),'utf-8');
-
+function saveCache() {
+    const dir = path.dirname(filePath);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(cache, null, 2), 'utf-8');
 }
 
-
-
-export function initSessions(workspaceRoot){
-    filePath=path.join(workspaceRoot,FILE_NAME);
+export function initSessions(workspaceRoot) {
+    filePath = path.join(workspaceRoot, FILE_NAME);
     getCache();
-    if((!(cache.sessions))||(cache.sessions.length===0)){
-        const newSession={
-            id:getRandomID(),
-            name:DEFAULT_SESSION_NAME,
-            messages:[],
+    if ((!(cache.sessions)) || (cache.sessions.length === 0)) {
+        const newSession = {
+            id: getRandomID(),
+            name: DEFAULT_SESSION_NAME,
+            messages: [],
             createdAt: Date.now(),
             updatedAt: Date.now()
-        }
-        cache.sessions=[newSession];
-        cache.activeSessionId=newSession.id;
-    }else{
-        const validIds=cache.sessions.map(s=>s.id);
-        const isLaw=validIds.includes(cache.activeSessionId);
-        if(!isLaw){
-            cache.activeSessionId=cache.sessions[0].id;
+        };
+        cache.sessions = [newSession];
+        cache.activeSessionId = newSession.id;
+        saveCache();
+    } else {
+        const validIds = cache.sessions.map(s => s.id);
+        const isLaw = validIds.includes(cache.activeSessionId);
+        if (!isLaw) {
+            cache.activeSessionId = cache.sessions[0].id;
             saveCache();
         }
     }
-
 }
 
-
-export function getSessionsList(){
-    const list=cache.sessions.map(function(s){
+export function getSessionsList() {
+    const list = cache.sessions.map(function (s) {
         return {
-            id:s.id,
-            name:s.name,
-            updatedAt:s.updatedAt,
-            messagesCout:s.messages.length
-        }
-    })
+            id: s.id,
+            name: s.name,
+            updatedAt: s.updatedAt,
+            messageCount: s.messages.length
+        };
+    });
+    return list;
 }
 
-export function getActiveSessionId(){
+export function getActiveSessionId() {
     return cache.activeSessionId;
 }
 
-export function findSessionById(id){
-    const session=cache.sessions.find(function(s){
-        return s.id===id;
-    })
+export function findSessionById(id) {
+    const session = cache.sessions.find(function (s) {
+        return s.id === id;
+    });
     return session;
 }
 
-export function getActiveSessionMessages(){
-    const activeId=getActiveSessionId(cache);
-    const targetSession=findSessionById(activeId);
-    if((!targetSession)||(!activeId)){
+export function getActiveSessionMessages() {
+    const activeId = getActiveSessionId();
+    const targetSession = findSessionById(activeId);
+    if ((!targetSession) || (!activeId)) {
         return [];
     }
 
-    return  targetSession.messages;
+    return [...targetSession.messages];
 }
 
-
-export function createNewSession(){
-    const newSession={
-        id:getRandomID(),
-        name:DEFAULT_SESSION_NAME,
-        messages:[],
+export function createNewSession() {
+    const newSession = {
+        id: getRandomID(),
+        name: DEFAULT_SESSION_NAME,
+        messages: [],
         createdAt: Date.now(),
         updatedAt: Date.now()
-    }
+    };
     cache.sessions.push(newSession);
-    cache.activeSessionId=newSession.id;
-    saveCache(cache);
+    cache.activeSessionId = newSession.id;
+    saveCache();
 
     return newSession;
 }
 
-
-export function switchSession(id){
-    const targetSession=findSessionById(id);
-    if(!targetSession){
+export function switchSession(id) {
+    const targetSession = findSessionById(id);
+    if (!targetSession) {
         console.error("No such session");
         return;
     }
-    cache.activeSessionId=id;
+    cache.activeSessionId = id;
     saveCache();
-    return;
 }
 
-export function deleteSession(id){
-    const targetSession=findSessionById(id);
-    if(!targetSession){
+export function deleteSession(id) {
+    const targetSession = findSessionById(id);
+    if (!targetSession) {
         console.error("No such session");
         return;
     }
-    const targetIndex=cache.sessions.indexof(targetSession);
-    cache.sessions.splice(targetIndex,1);
+    const targetIndex = cache.sessions.indexOf(targetSession);
+    cache.sessions.splice(targetIndex, 1);
 
-    if(targetSession.id===cache.activeSessionId){
-        if(cache.sessions.length>0){
-            cache.activeSessionId=cache.sessions[0].id;
-        }else{
-            const newSession=createNewSession();
-            cache.activeSessionId=newSession.id;
+    if (targetSession.id === cache.activeSessionId) {
+        if (cache.sessions.length > 0) {
+            cache.activeSessionId = cache.sessions[0].id;
+        } else {
+            createNewSession();
         }
     }
+    saveCache();
 }
 
-
-export function saveMessages(id,messages){
-    const targetSession=findSessionById(id);
-    if(!targetSession){
+export function saveMessages(id, messages) {
+    const targetSession = findSessionById(id);
+    if (!targetSession) {
         console.error("No such session");
         return;
     }
 
-    targetSession.messages=messages;
+    targetSession.messages = messages;
     targetSession.updatedAt = Date.now();
     saveCache();
-
 }
 
-export function renameSession(id,newName){
-    const targetSession=findSessionById(id);
-    if(!targetSession){
+export function renameSession(id, newName) {
+    const targetSession = findSessionById(id);
+    if (!targetSession) {
         console.error("No such session");
         return;
     }
-    targetSession.name=newName;
+    targetSession.name = newName;
     saveCache();
 }
