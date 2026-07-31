@@ -91,3 +91,73 @@ export function getActiveSessionMessages(){
     return  targetSession.messages;
 }
 
+
+export function createNewSession(){
+    const newSession={
+        id:getRandomID(),
+        name:DEFAULT_SESSION_NAME,
+        messages:[],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+    }
+    cache.sessions.push(newSession);
+    cache.activeSessionId=newSession.id;
+    saveCache(cache);
+
+    return newSession;
+}
+
+
+export function switchSession(id){
+    const targetSession=findSessionById(id);
+    if(!targetSession){
+        console.error("No such session");
+        return;
+    }
+    cache.activeSessionId=id;
+    saveCache();
+    return;
+}
+
+export function deleteSession(id){
+    const targetSession=findSessionById(id);
+    if(!targetSession){
+        console.error("No such session");
+        return;
+    }
+    const targetIndex=cache.sessions.indexof(targetSession);
+    cache.sessions.splice(targetIndex,1);
+
+    if(targetSession.id===cache.activeSessionId){
+        if(cache.sessions.length>0){
+            cache.activeSessionId=cache.sessions[0].id;
+        }else{
+            const newSession=createNewSession();
+            cache.activeSessionId=newSession.id;
+        }
+    }
+}
+
+
+export function saveMessages(id,messages){
+    const targetSession=findSessionById(id);
+    if(!targetSession){
+        console.error("No such session");
+        return;
+    }
+
+    targetSession.messages=messages;
+    targetSession.updatedAt = Date.now();
+    saveCache();
+
+}
+
+export function renameSession(id,newName){
+    const targetSession=findSessionById(id);
+    if(!targetSession){
+        console.error("No such session");
+        return;
+    }
+    targetSession.name=newName;
+    saveCache();
+}
