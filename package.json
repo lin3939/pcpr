@@ -2,7 +2,7 @@
   "name": "pcpr",
   "displayName": "Programmer Chat Programming Robot",
   "description": "A Programmer Chat Programming Robot, detecting logical errors in your code.",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -26,7 +26,8 @@
         {
           "id": "pcpr",
           "title": "PCPR",
-          "icon": "sidebar_logo.svg"
+          "icon": "sidebar_logo.svg",
+          "when": "workbenchState != empty"
         }
       ]
     },
@@ -36,7 +37,8 @@
           "type": "webview",
           "id": "pcpr.webviewChat",
           "name": "PCPR Chat",
-          "icon": "sidebar_logo.svg"
+          "icon": "sidebar_logo.svg",
+          "when": "workbenchState != empty"
         }
       ]
     },
@@ -47,7 +49,8 @@
       },
       {
         "command": "pcpr.webviewChat",
-        "title": "PCPR Web Chat"
+        "title": "PCPR Web Chat",
+        "when": "workbenchState != empty"
       },
       {
         "command": "pcpr.addApi",
