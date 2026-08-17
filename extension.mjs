@@ -93,9 +93,23 @@ class PCPRWebviewProvider {
     constructor(context, structure) {
         this.context = context;
         this.structure = structure;
+        this.webviewView = null;
+    }
+
+    refreshSessionState() {
+        if (!this.webviewView) {
+            return;
+        }
+        this.webviewView.webview.postMessage({
+            command: 'sessionState',
+            sessions: sessionStore.getSessionsList(),
+            messages: sessionStore.getActiveSessionMessages(),
+            activeSessionId: sessionStore.getActiveSessionId()
+        });
     }
 
     resolveWebviewView(webviewView) {
+        this.webviewView = webviewView;
         const webview = webviewView.webview;
         webview.options = { enableScripts: true };
 
@@ -249,6 +263,13 @@ export async function activate(context) {
     // 会话数据直接存放在插件自己的目录里（不依赖 VS Code 存储 API），每个会话用 projectPath 关联项目
     sessionStore.initSessions(context.extensionPath, projectPath);
     var structure = await userContextUtils.getWorkspaceStructure(workspaceFolders);
+    const provider = new PCPRWebviewProvider(context, structure);
+
+    const refreshProjectSessions = () => {
+        const currentProjectPath = vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath || null;
+        sessionStore.initSessions(context.extensionPath, currentProjectPath);
+        provider.refreshSessionState();
+    };
 
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -347,7 +368,12 @@ export async function activate(context) {
 
     // 注册侧边栏聊天视图（WebviewView）
     context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider('pcpr.webviewChat', new PCPRWebviewProvider(context, structure))
+        vscode.window.registerWebviewViewProvider('pcpr.webviewChat', provider)
+    );
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeWorkspaceFolders(() => {
+            refreshProjectSessions();
+        })
     );
 
     // 注册 webviewChat 打开 web 聊天窗口的命令
