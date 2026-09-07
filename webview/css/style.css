@@ -177,6 +177,24 @@ body {
     cursor: not-allowed;
 }
 
+/* “停止生成”按钮：默认隐藏（CSP 下内联 style 会被忽略，必须用样式表），
+   仅在发送被禁用（请求进行中）时由 JS setBusy 设为 inline-block */
+.input-area button#stop-btn {
+    display: none;
+    background: #c42b1c;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.input-area button#stop-btn:hover {
+    background: #e0553f;
+}
+
 ::-webkit-scrollbar {
     width: 8px;
     background: #252526;

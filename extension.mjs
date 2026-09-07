@@ -47,8 +47,9 @@ async function main(context, currentFile) {
 }
 
 // Main function to process user request from webview through OpenAI API.
-// Returns Object of necessary information of AI's response on success, false on error.
-async function web_main(context, input, chatHistory = [], ProjectStructure = "") {
+// Returns Object of necessary information of AI's response on success, false on error,
+// or { aborted: true } when the request was cancelled by the user (stop button).
+async function web_main(context, input, chatHistory = [], ProjectStructure = "", signal) {
     try {
         const user_data = await userdataUtils.getData(context);
         const openai = new OpenAI({
@@ -67,10 +68,13 @@ async function web_main(context, input, chatHistory = [], ProjectStructure = "")
             }
             messages.push({ role: 'user', content: input });
 
-            const completion = await openai.chat.completions.create({
-                model: user_data.model,
-                messages: messages
-            });
+            const completion = await openai.chat.completions.create(
+                {
+                    model: user_data.model,
+                    messages: messages
+                },
+                signal ? { signal } : undefined
+            );
 
             return {
                 // date: new Date().toLocaleString(),
@@ -83,6 +87,12 @@ async function web_main(context, input, chatHistory = [], ProjectStructure = "")
             return false;
         }
     } catch (error) {
+        // 用户点击“停止”按钮触发的中止不应按普通错误提示
+        const errMsg = error && (error.message || String(error));
+        const isAbort = error && (error.name === 'AbortError' || error.code === 'ABORT_ERR' || /abort|cancel/i.test(String(errMsg)));
+        if (isAbort) {
+            return { aborted: true };
+        }
         vscode.window.showErrorMessage("Webview Error: " + String(error));
         return false;
     }
@@ -94,6 +104,9 @@ class PCPRWebviewProvider {
         this.context = context;
         this.structure = structure;
         this.webviewView = null;
+        // 当前 chat 请求的中止控制器（用于“停止”按钮）
+        this.pendingController = null;
+        this.stopRequested = false;
     }
 
     refreshSessionState() {
@@ -150,9 +163,28 @@ class PCPRWebviewProvider {
 
                         const totalInput = JSON.stringify(openedFiles) + "|" + message.text;
                         // 只把最近 20 条作为模型上下文，完整历史仍全部入库
-                        const response = await web_main(this.context, totalInput, history.slice(-20), this.structure);
+                        // 关联 AbortController，便于“停止”按钮中止本次请求
+                        this.pendingController = new AbortController();
+                        this.stopRequested = false;
+                        let response;
+                        try {
+                            response = await web_main(
+                                this.context,
+                                totalInput,
+                                history.slice(-20),
+                                this.structure,
+                                this.pendingController.signal
+                            );
+                        } finally {
+                            if (this.pendingController) {
+                                this.pendingController = null;
+                            }
+                        }
 
-                        if (response && response.response) {
+                        if (response && response.aborted) {
+                            // 用户点击“停止”：保留用户消息，丢弃未完成的回复
+                            sessionStore.saveMessages(sessionId, history);
+                        } else if (response && response.response && !this.stopRequested) {
                             history.push({
                                 role: 'assistant',
                                 content: response.response,
@@ -180,10 +212,24 @@ class PCPRWebviewProvider {
                                 model: response.model,
                                 usage: response.usage
                             });
+                        } else if (response && response.response && this.stopRequested) {
+                            // 竞态：完整回复到达后才收到停止指令，不渲染、不存回复
+                            sessionStore.saveMessages(sessionId, history);
                         } else {
                             // 即使请求失败也保留用户消息
                             sessionStore.saveMessages(sessionId, history);
                             webview.postMessage({ command: 'agentResponse', text: 'Something went wrong.' });
+                        }
+                        break;
+                    }
+                    case 'stop': {
+                        // 前端点击“停止”按钮：中止进行中的请求
+                        if (this.pendingController) {
+                            this.stopRequested = true;
+                            try {
+                                this.pendingController.abort();
+                            } catch (_err) { /* 忽略中止时的错误 */ }
+                            this.pendingController = null;
                         }
                         break;
                     }

@@ -8,8 +8,12 @@ const sessionSelector = document.getElementById('session-selector');
 const newSessionBtn = document.getElementById('new-session-btn');
 const deleteSessionBtn = document.getElementById('delete-session-btn');
 const renameSessionBtn = document.getElementById('rename-session-btn');
+const stopBtn = document.getElementById('stop-btn');
 
 let isStreaming = false;
+let generationCancelled = false;
+let typingTimer = null;
+let typingState = null;
 let projectContext = null;
 let currentActiveSessionId = null;
 
@@ -18,6 +22,15 @@ function setSessionControlsDisabled(disabled) {
     newSessionBtn.disabled = disabled;
     deleteSessionBtn.disabled = disabled;
     renameSessionBtn.disabled = disabled;
+}
+
+// 统一管理忙碌状态：busy=true 时隐藏“发送”并让“停止”占据其位置
+function setBusy(busy) {
+    isStreaming = busy;
+    sendBtn.disabled = busy;
+    sendBtn.style.display = busy ? 'none' : '';
+    if (stopBtn) stopBtn.style.display = busy ? 'inline-block' : 'none';
+    setSessionControlsDisabled(busy);
 }
 
 function appendMessage(content, sender) {
@@ -89,8 +102,15 @@ function loadMessages(messages){
 }
 
 
+function renderInto(contentDiv, mdText) {
+    if (window.marked && typeof window.marked.parse === 'function') {
+        contentDiv.innerHTML = window.marked.parse(mdText);
+    } else {
+        contentDiv.textContent = mdText;
+    }
+}
+
 function streamAgentMessage(text, info) {
-    let i = 0;
     isStreaming = true;
     const msgDiv = document.createElement('div');
     msgDiv.className = 'message agent';
@@ -107,24 +127,43 @@ function streamAgentMessage(text, info) {
     chatContainer.appendChild(msgDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
 
+    const state = { contentDiv: contentDiv, fullText: text || '', i: 0 };
+    typingState = state;
+
     function typeChar() {
-        if (i <= text.length) {
-            if (window.marked && typeof window.marked.parse === 'function') {
-                contentDiv.innerHTML = window.marked.parse(text.slice(0, i));
-            } else {
-                contentDiv.textContent = text.slice(0, i);
-            }
+        if (state.i <= state.fullText.length) {
+            renderInto(state.contentDiv, state.fullText.slice(0, state.i));
             chatContainer.scrollTop = chatContainer.scrollHeight;
-            i++;
-            setTimeout(typeChar, 18);
+            state.i++;
+            typingTimer = setTimeout(typeChar, 8);
         } else {
-            isStreaming = false;
-            sendBtn.disabled = false;
-            setSessionControlsDisabled(false);
+            typingTimer = null;
+            typingState = null;
+            setBusy(false);
         }
     }
     typeChar();
 }
+
+// “停止”按钮：等待期间中止请求；逐字输出阶段停止动画并直接显示已收到的全文
+function stopGeneration() {
+    if (!isStreaming) return;
+    generationCancelled = true;
+    if (loadingSpinner) loadingSpinner.style.display = 'none';
+    if (typingTimer) {
+        clearTimeout(typingTimer);
+        typingTimer = null;
+    }
+    if (typingState) {
+        renderInto(typingState.contentDiv, typingState.fullText);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        typingState = null;
+    }
+    vscode.postMessage({ command: 'stop' });
+    setBusy(false);
+}
+
+if (stopBtn) stopBtn.addEventListener('click', stopGeneration);
 
 sendBtn.addEventListener('click', () => {
     sendUserMessage();
@@ -163,11 +202,10 @@ chatInput.addEventListener('keydown', (e) => {
 function sendUserMessage() {
     const content = chatInput.value.trim();
     if (!content || isStreaming) return;
-    isStreaming = true;
+    generationCancelled = false;
+    setBusy(true);
     appendMessage(content, 'user');
     chatInput.value = '';
-    sendBtn.disabled = true;
-    setSessionControlsDisabled(true);
     if (loadingSpinner) loadingSpinner.style.display = 'flex';
     vscode.postMessage({ command: 'chat', text: content });
 }
@@ -187,16 +225,17 @@ window.addEventListener('message', event => {
         case 'agentResponse':
             if (loadingSpinner) loadingSpinner.style.display = 'none';
             try {
-                if (message.text) {
+                if (generationCancelled) {
+                    // 已点击“停止”：忽略迟到的完整回复，恢复输入
+                    setBusy(false);
+                } else if (message.text) {
                     streamAgentMessage(message.text, formatAgentInfo(message.model, message.usage));
                 } else {
-                    sendBtn.disabled = false;
-                    setSessionControlsDisabled(false);
+                    setBusy(false);
                 }
             } catch (e) {
                 console.error(e);
-                sendBtn.disabled = false;
-                setSessionControlsDisabled(false);
+                setBusy(false);
             }
             break;
         case 'sessionState':
