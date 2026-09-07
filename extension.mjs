@@ -257,6 +257,21 @@ class PCPRWebviewProvider {
 }
 
 var openedFiles = {};
+
+// 不应纳入项目上下文的文件（按文件名/扩展名判断）
+function shouldOmitFile(filePath) {
+    const base = String(filePath).split(/[\\/]/).pop().toLowerCase();
+    if (base === '.env' || base.startsWith('.env.')) return true;
+    const lockFiles = [
+        'package-lock.json', 'npm-shrinkwrap.json', 'yarn.lock', 'pnpm-lock.yaml',
+        'pnpm-lock.yml', 'composer.lock', 'gemfile.lock', 'poetry.lock',
+        'pipfile.lock', 'cargo.lock', 'flake.lock', 'bun.lockb', 'bun.lock'
+    ];
+    if (lockFiles.includes(base)) return true;
+    if (/\.(min\.js|min\.css|min\.mjs|min\.cjs|map)$/.test(base)) return true;
+    return false;
+}
+
 export async function activate(context) {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     const projectPath = workspaceFolders?.[0]?.uri?.fsPath || null;
@@ -287,7 +302,7 @@ export async function activate(context) {
         }
         if (count < 10) {
             const currentFile = userContextUtils.getCurrentFile();
-            if (!Object.keys(openedFiles).includes(currentFile.filePath)) {
+            if (currentFile && !shouldOmitFile(currentFile.filePath) && !Object.keys(openedFiles).includes(currentFile.filePath)) {
                 openedFiles[currentFile.filePath] = currentFile.content;
             }
         }
@@ -299,7 +314,12 @@ export async function activate(context) {
         try {
             const doc = e.document;
             if (doc && doc.uri && doc.uri.scheme === 'file' && openedFiles[doc.uri.fsPath] !== undefined) {
-                openedFiles[doc.uri.fsPath] = doc.getText();
+                // 若为过滤表文件（含升级前已缓存的历史数据），直接清除而不是更新
+                if (shouldOmitFile(doc.uri.fsPath)) {
+                    delete openedFiles[doc.uri.fsPath];
+                } else {
+                    openedFiles[doc.uri.fsPath] = doc.getText();
+                }
             }
         } catch (err) {
             vscode.window.showErrorMessage(`docChangeListener error: ${String(err)}`);
@@ -325,7 +345,7 @@ export async function activate(context) {
     try {
         for (const editor of vscode.window.visibleTextEditors) {
             const doc = editor.document;
-            if (doc && doc.uri && doc.uri.scheme === 'file' && doc.languageId !== 'markdown' && doc.languageId !== 'plaintext' && doc.languageId !== 'ignore' && doc.languageId !== 'code-text-binary' && doc.languageId !== 'log') {
+            if (doc && doc.uri && doc.uri.scheme === 'file' && !shouldOmitFile(doc.uri.fsPath) && doc.languageId !== 'markdown' && doc.languageId !== 'plaintext' && doc.languageId !== 'ignore' && doc.languageId !== 'code-text-binary' && doc.languageId !== 'log') {
                 openedFiles[doc.uri.fsPath] = doc.getText();
             }
         }
