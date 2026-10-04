@@ -83,6 +83,14 @@
       {
         "command": "pcpr.inlineCompletionStatus",
         "title": "PCPR: Inline Completion Troubleshooting"
+      },
+      {
+        "command": "pcpr.disableInlineCompletion",
+        "title": "PCPR: Inline Completion On (click to disable)"
+      },
+      {
+        "command": "pcpr.enableInlineCompletion",
+        "title": "PCPR: Inline Completion Off (click to enable)"
       }
     ],
     "menus": {
@@ -100,6 +108,24 @@
           "command": "pcpr.triggerInlineCompletion",
           "title": "PCPR: Trigger Inline Completion Now",
           "when": "editorTextFocus"
+        },
+        {
+          "command": "pcpr.disableInlineCompletion",
+          "when": "editorTextFocus && pcpr.inlineCompletionEnabled"
+        },
+        {
+          "command": "pcpr.enableInlineCompletion",
+          "when": "editorTextFocus && !pcpr.inlineCompletionEnabled"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "pcpr.disableInlineCompletion",
+          "when": "false"
+        },
+        {
+          "command": "pcpr.enableInlineCompletion",
+          "when": "false"
         }
       ]
     },
